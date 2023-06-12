@@ -1,0 +1,74 @@
+name: NuGet Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+      - '*.*.*-*' 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3.0.3
+        with:
+          dotnet-version: 6.0.100-preview.2.21155.3
+          
+      - name: Build
+        run: dotnet build -c Release --output LocalizeNet/Artifacts
+        
+      - uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          
+      - name: Archive files
+        run: |
+          cd LocalizeNet/Artifacts
+          zip -r build.zip *
+          
+      - name: Publish artifacts to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: LocalizeNet/Artifacts/build.zip
+          asset_name: build.zip
+          asset_content_type: application/zip
+          
+  nuget:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3.0.3
+        with:
+          dotnet-version: 6.0.100-preview.2.21155.3
+          
+      - name: Replace package versions
+        run: echo "$(echo "`cat ./LocalizeNet/LocalizeNet.csproj`" | perl -pe 's/<PackageVersion>(.*)<\/PackageVersion>/<PackageVersion>'${GITHUB_REF##*/}'<\/PackageVersion>/g')" > ./LocalizeNet/LocalizeNet.csproj
+      
+      - name: Build
+        run: dotnet build -c Release
+      
+      - name: Pack NuGet
+        run: dotnet pack -c Release --no-build --output .
+      
+      - name: Release NuGet
+        uses: alirezanet/publish-nuget@v3.0.3
+        with:
+          PROJECT_FILE_PATH: ./LocalizeNet/LocalizeNet.csproj
+          VERSION_REGEX: <PackageVersion>(.*)<\/PackageVersion>
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
