@@ -4,6 +4,13 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Title>LocalizeNet</Title>
+        <Description>Simplify project localization and internationalization in C#. Effortlessly manage translations, adapt to different languages and cultures, and ensure a seamless user experience worldwide.</Description>
+        <PackageProjectUrl>https://github.com/litolax/LocalizerNet</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/litolax/LocalizerNet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>localization, locale</PackageTags>
+        <PackageIcon>logo.jpg</PackageIcon>
     </PropertyGroup>
 
 </Project>
