@@ -13,4 +13,11 @@
         <PackageIcon>logo.jpg</PackageIcon>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Update="logo.jpg">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
+
 </Project>
