@@ -4,29 +4,61 @@ namespace LocalizeNet;
 
 public class Localizer
 {
-    private readonly JsonDocument _localization;
+    private Dictionary<string, JsonDocument> _locales = new();
+    private string _currentLanguage;
+    private readonly string _fallbackLgn;
+    private readonly bool _debug;
+    private readonly string _keySeparator;
 
-    public Localizer(string localization)
+    public Localizer(string lng, string fallbackLgn, bool debug, string keySeparator = ".")
     {
-        this._localization = JsonDocument.Parse(localization);
+        this._currentLanguage = lng;
+        this._fallbackLgn = fallbackLgn;
+        this._debug = debug;
+        this._keySeparator = keySeparator;
     }
 
-    public string GetString(string key)
+    public string T(string key)
     {
-        JsonElement token;
+        if (!this.TryGetToken(key, out var token)) return key;
 
-        if (TryGetToken(key, out token))
+        return token.GetString() ?? key;
+    }
+
+    public void SetCurrentLanguage(string lng) => this._currentLanguage = lng.ToLowerInvariant();
+
+    public bool AddLocaleResource(string lng, string resource)
+    {
+        try
         {
-            return token.GetString() ?? key;
+            var jsonResource = JsonDocument.Parse(resource);
+            this._locales.Add(lng.ToLowerInvariant(), jsonResource);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
         }
 
-        return key;
+        return true;
+    }
+
+    public bool RemoveLocaleResource(string lng)
+    {
+        var result = this._locales.Remove(lng.ToLowerInvariant());
+        return result;
     }
 
     private bool TryGetToken(string key, out JsonElement token)
     {
-        string[] keys = key.Split(':');
-        JsonElement root = this._localization.RootElement;
+        if (!this._locales.TryGetValue(this._currentLanguage, out var jsonDocument))
+        {
+            token = default;
+            return false;
+        }
+
+        JsonElement root = jsonDocument.RootElement;
+        string[] keys = key.Split(this._keySeparator);
 
         foreach (string k in keys)
         {
