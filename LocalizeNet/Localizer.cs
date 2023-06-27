@@ -51,7 +51,7 @@ public class Localizer
 
     private bool TryGetToken(string key, out JsonElement token)
     {
-        if (!this._locales.TryGetValue(this._currentLanguage, out var jsonDocument))
+        if (!this._locales.TryGetValue(this._currentLanguage, out var jsonDocument) && !this._locales.TryGetValue(this._fallbackLgn, out jsonDocument))
         {
             token = default;
             return false;
