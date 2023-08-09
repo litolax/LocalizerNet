@@ -18,9 +18,16 @@ public class Localizer
         this._keySeparator = keySeparator;
     }
 
-    public string T(string key)
+    public string T(string key, params object[] args)
     {
         if (!this.TryGetToken(key, out var token)) return key;
+        
+        var str = token.GetString();
+        
+        if (!string.IsNullOrEmpty(str))
+        {
+            return string.Format(str, args);
+        }
 
         return token.GetString() ?? key;
     }
@@ -51,7 +58,8 @@ public class Localizer
 
     private bool TryGetToken(string key, out JsonElement token)
     {
-        if (!this._locales.TryGetValue(this._currentLanguage, out var jsonDocument) && !this._locales.TryGetValue(this._fallbackLgn, out jsonDocument))
+        if (!this._locales.TryGetValue(this._currentLanguage, out var jsonDocument) &&
+            !this._locales.TryGetValue(this._fallbackLgn, out jsonDocument))
         {
             token = default;
             return false;
